@@ -1,0 +1,37 @@
+type Character {
+  id: ID
+  name: String!
+  status: String!
+  image: String
+  gender: String
+}
+
+type User {
+  id: ID
+  name: String!
+  email: String!
+  password: String!
+}
+
+input UserInput {
+  name: String!
+  email: String!
+  password: String!
+}
+
+type AuthPayLoad {
+  token: String!
+  user: User
+}
+
+type Query {
+  characters: [Character]
+  character(id: ID): Character
+  users: [User]
+}
+
+type Mutation {
+  addCharacter(name: String!, status: String!, gender: String, image: String): Character
+  removeCharacter(id: ID): Character
+  signup(user: UserInput): AuthPayLoad
+}
