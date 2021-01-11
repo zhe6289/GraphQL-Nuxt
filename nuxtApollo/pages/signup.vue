@@ -1,5 +1,7 @@
 <template>
   <div class="p-2">
+    <div v-if="$apollo.queries.users.loading">Loading...</div>
+    <div v-if="$apolloData.queries.users.loading">Loading...</div>
     <div class="flex">
       <nuxt-link class="p-3 bg-gray-300" to="/">Back</nuxt-link>
     </div>    
@@ -25,7 +27,7 @@
     <button class="px-3 py-2 my-2 font-semibold text-white bg-green-600" @click="SignUp()">Sign Up</button>
     <div class="list-wrap">
       <ul class="space-y-2">
-        <li v-for="(user, index) in registered" :key="index" class="flex flex-col px-2 py-1 text-gray-700 border rounded shadow">
+        <li v-for="(user, index) in users" :key="index" class="flex flex-col px-2 py-1 text-gray-700 border rounded shadow">
           <div>name: {{ user.name }}</div>
           <div>email: {{ user.email }}</div>
         </li>
@@ -53,20 +55,24 @@ export default {
     return {
       name: '',
       password: '',
-      email: '',
-      registered: {}
+      email: ''
+    }
+  },
+  apollo: {
+    users: {
+      query: GET_USERS
+    }
+  },
+  computed: {
+    charactersLoad() {
+      const load = this.$apolloData.queries.users.loading
+      return load
     }
   },
   async mounted() {
-    await this.getUsers()
+    // await this.getUsers()
   },
   methods: {
-    async getUsers() {
-      const { data } = await this.$apollo.query({
-        query: GET_USERS
-      })
-      this.registered = data.users
-    },    
     async SignUp(event) {
       await this.$apollo.mutate({
         mutation: gql `mutation (
@@ -94,20 +100,7 @@ export default {
           password: this.password,
           email: this.email
         },
-        update: (cache, { data: { signup } }) => {
-          try {
-            const data = cache.readQuery({
-              query: GET_USERS
-            })
-            data.users.push(signup.user)
-            cache.writeQuery({
-              query: GET_USERS,
-              data
-            })
-          } catch (error) {
-            console.log(error)
-          }          
-        }
+        refetchQueries: [{ query: GET_USERS }]
       }).then((res) => {
         this.name = ''
         this.password = ''
